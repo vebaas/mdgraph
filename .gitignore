@@ -1,0 +1,11 @@
+*
+!.gitignore
+
+!cmd
+!cmd/**
+
+!docker-compose.yml
+!go.mod
+
+!migrations
+!migrations/**
