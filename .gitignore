@@ -4,6 +4,9 @@
 !cmd
 !cmd/**
 
+!internal
+!internal/**
+
 !docker-compose.yml
 !go.mod
 
