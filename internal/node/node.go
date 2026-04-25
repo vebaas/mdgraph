@@ -1,6 +1,14 @@
 package node
 
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
 type Node struct {
-	ID uint64;
-	Type
+	ID         uuid.UUID
+	Type       string
+	Properties map[string]interface{}
+	CreatedAt  time.Time
 }
