@@ -3,6 +3,7 @@
 package node
 
 import (
+	"mdgraph/internal/registry"
 	"time"
 
 	"github.com/google/uuid"
@@ -21,12 +22,12 @@ const (
 // Every node has a globally unique ID that never changes.
 // Nodes participate in multiple dimensions through edges.
 type Node struct {
-	ID uuid.UUID
-	Type NodeType
-	Content []ContentItem
+	ID         uuid.UUID
+	Type       NodeType
+	Content    []ContentItem
 	Properties map[string]interface{}
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt  time.Time
+	UpdatedAt  time.Time
 }
 
 // NewNode creates a new initialized Node with a generated UUID.
@@ -41,4 +42,10 @@ func NewNode(nodeType NodeType) *Node {
 		CreatedAt:  time.Now(),
 		UpdatedAt:  time.Now(),
 	}
+}
+
+// RegisterBaseTypes registers the built-in node types into the provided registry.
+// Call this once when the engine starts before registering application types.
+func RegisterBaseTypes(reg *registry.Registry) {
+	reg.Register(string(NodeTypeGeneric))
 }

@@ -2,6 +2,8 @@ package node
 
 import (
 	"context"
+	"fmt"
+	"mdgraph/internal/registry"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -10,19 +12,25 @@ import (
 // postgresRepository is a PostgreSQL implementation of the Repository interface.
 type postgresRepository struct {
 	connectionPool *pgxpool.Pool
+	registry       *registry.Registry
 }
 
 var _ Repository = (*postgresRepository)(nil)
 
 // NewPostgresRepository creates a new repository using the provided connection pool.
-func NewPostgresRepository(connectionPool *pgxpool.Pool) *postgresRepository {
+func NewPostgresRepository(connectionPool *pgxpool.Pool, registry *registry.Registry) *postgresRepository {
 	return &postgresRepository{
 		connectionPool: connectionPool,
+		registry:       registry,
 	}
 }
 
-func (r *postgresRepository) Create(ctx context.Context, node *Node) error {
-	_, err := r.connectionPool.Exec(ctx,
+func (repo *postgresRepository) Create(ctx context.Context, node *Node) error {
+	if !repo.registry.IsValid(string(node.Type)) {
+		return fmt.Errorf("unknown node type: %s", node.Type)
+	}
+
+	_, err := repo.connectionPool.Exec(ctx,
 		"INSERT INTO nodes (id, type, properties) VALUES ($1, $2, $3)",
 		node.ID,
 		node.Type,
@@ -33,10 +41,10 @@ func (r *postgresRepository) Create(ctx context.Context, node *Node) error {
 
 // GetByID retrieves a node and its content by ID.
 // Returns an error if the node is not found.
-func (r *postgresRepository) GetByID(ctx context.Context, id string) (*Node, error) {
+func (repo *postgresRepository) GetByID(ctx context.Context, id string) (*Node, error) {
 	var node Node
 
-	err := r.connectionPool.QueryRow(
+	err := repo.connectionPool.QueryRow(
 		ctx,
 		"SELECT id, type, properties, created_at, updated_at FROM nodes WHERE id = $1",
 		id,
@@ -45,7 +53,7 @@ func (r *postgresRepository) GetByID(ctx context.Context, id string) (*Node, err
 		return nil, err
 	}
 
-	rows, err := r.connectionPool.Query(
+	rows, err := repo.connectionPool.Query(
 		ctx,
 		"SELECT kind, value, min_lod FROM node_content WHERE node_id = $1",
 		node.ID,
@@ -68,8 +76,8 @@ func (r *postgresRepository) GetByID(ctx context.Context, id string) (*Node, err
 }
 
 // AddContent inserts a content item linked to the given node.
-func (r *postgresRepository) AddContent(ctx context.Context, nodeID uuid.UUID, item ContentItem) error {
-	_, err := r.connectionPool.Exec(ctx,
+func (repo *postgresRepository) AddContent(ctx context.Context, nodeID uuid.UUID, item ContentItem) error {
+	_, err := repo.connectionPool.Exec(ctx,
 		"INSERT INTO node_content (id, node_id, kind, value, min_lod) VALUES ($1, $2, $3, $4, $5)",
 		uuid.New(),
 		nodeID,
