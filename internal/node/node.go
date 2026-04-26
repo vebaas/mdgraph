@@ -9,8 +9,7 @@ import (
 )
 
 // NodeType represents the type of a node in the graph.
-// Applications built on the engine define their own node types
-// by registering them with the engine registry.
+// Applications register their own node types via the engine registry.
 type NodeType string
 
 const (
@@ -22,17 +21,11 @@ const (
 // Every node has a globally unique ID that never changes.
 // Nodes participate in multiple dimensions through edges.
 type Node struct {
-	// ID is the permanent global identifier for this node.
 	ID uuid.UUID
-	// Type describes what kind of node this is.
 	Type NodeType
-	// Content holds the node's content items at various LOD levels.
 	Content []ContentItem
-	// Properties holds flexible structured data specific to the node type.
 	Properties map[string]interface{}
-	// CreatedAt is the time this node was created.
 	CreatedAt time.Time
-	// UpdatedAt is the time this node was last modified.
 	UpdatedAt time.Time
 }
 
