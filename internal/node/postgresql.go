@@ -7,12 +7,14 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
+// postgresRepository is a PostgreSQL implementation of the Repository interface.
 type postgresRepository struct {
 	connectionPool *pgxpool.Pool
 }
 
 var _ Repository = (*postgresRepository)(nil)
 
+// NewPostgresRepository creates a new repository using the provided connection pool.
 func NewPostgresRepository(connectionPool *pgxpool.Pool) *postgresRepository {
 	return &postgresRepository{
 		connectionPool: connectionPool,
@@ -29,6 +31,8 @@ func (r *postgresRepository) Create(ctx context.Context, node *Node) error {
 	return err
 }
 
+// GetByID retrieves a node and its content by ID.
+// Returns an error if the node is not found.
 func (r *postgresRepository) GetByID(ctx context.Context, id string) (*Node, error) {
 	var node Node
 
@@ -63,6 +67,7 @@ func (r *postgresRepository) GetByID(ctx context.Context, id string) (*Node, err
 	return &node, nil
 }
 
+// AddContent inserts a content item linked to the given node.
 func (r *postgresRepository) AddContent(ctx context.Context, nodeID uuid.UUID, item ContentItem) error {
 	_, err := r.connectionPool.Exec(ctx,
 		"INSERT INTO node_content (id, node_id, kind, value, min_lod) VALUES ($1, $2, $3, $4, $5)",
